@@ -1,0 +1,48 @@
+### Register worker (valid)
+POST {{baseUrl}}/register-worker
+CPEE-CALLBACK: https://httpbin.org/put # /dev/null for HTTP PUT requests
+
+> {%
+    client.test("Register worker", function () {
+        client.assert(response.status === 200 || response.status === 202, "Response status is not 200 or 202");
+    });
+%}
+
+### Submit job (valid)
+POST {{baseUrl}}/submit-job
+Content-Type: application/json
+
+{
+  "drink": "mojito",
+  "name": "Michael",
+  "logo": "lion"
+}
+
+> {%
+    client.test("Submit job", function () {
+        client.assert(response.status === 200 || response.status === 202, "Response status is not 200 or 202");
+    });
+%}
+
+### Missing callback URL
+POST {{baseUrl}}/register-worker
+
+> {%
+    client.test("Register worker without callback URL", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert("Error" in response.body, "Response body does not contain 'Error'");
+        client.assert(response.body["Error"] === "Missing", "Response body is not { \"Error\": \"Missing\" }");
+    });
+%}
+
+### Invalid callback URL
+POST {{baseUrl}}/register-worker
+CPEE-CALLBACK: invalid
+
+> {%
+    client.test("Register worker with invalid callback URL", function () {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert("Error" in response.body, "Response body does not contain 'Error'");
+        client.assert(response.body["Error"] === "NotAUrl", "Response body is not { \"Error\": \"NotAUrl\" }");
+    });
+%}

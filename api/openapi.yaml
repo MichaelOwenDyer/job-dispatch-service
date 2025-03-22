@@ -1,0 +1,90 @@
+openapi: 3.0.0
+info:
+  title: Queue Service API
+  version: 1.0.0
+  description: API for asynchronously assigning jobs to workers using a dual-queue system.
+paths:
+  /register-worker:
+    post:
+      summary: Request a job assignment
+      description: Request a job to be returned synchronously if one is available, otherwise asynchronously via a callback URL
+      parameters:
+        - name: CPEE-CALLBACK
+          description: Callback URL for asynchronous job assignment if no job is available at the time of the request
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uri
+      responses:
+        "200":
+          description: A job is available and is returned synchronously
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Job:
+                    $ref: "#/components/schemas/Job"
+        "202":
+          description: No job is immediately available, one will be sent to the provided callback URL at a later time
+          content:
+            application/json:
+              schema:
+                type: string
+                enum: ["Queued"]
+        "400":
+          description: The CPEE-CALLBACK header is missing or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    enum: ["Missing", "NotAString", "NotAUrl"]
+  /submit-job:
+    post:
+      summary: Submit a job for processing
+      description: Submit a job for processing by a worker as soon as one is available
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: |
+            The job has been assigned to a worker and is being processed.
+          content:
+            application/json:
+              schema:
+                type: string
+                enum: ["Assigned"]
+        "202":
+          description: |
+            No worker is immediately available, the job has been queued for later processing. The position in the queue is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Queued:
+                    type: object
+                    properties:
+                      position:
+                        type: integer
+components:
+  schemas:
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        data:
+          type: object
+        submitted_at:
+          type: string
+          format: date-time
