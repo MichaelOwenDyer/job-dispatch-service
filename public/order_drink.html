@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Order Drink</title>
+</head>
+<body>
+<form id="orderForm">
+    <label for="name">Who are you?</label>
+    <input type="text" id="name" placeholder="Enter your name..." required>
+    <div></div>
+    <label for="logo">What's your symbol?</label>
+    <select id="logo" name="logo">
+        <option value="lion">Lion</option>
+        <option value="cat">Cat</option>
+        <option value="turtle">Turtle</option>
+        <option value="rabbit">Rabbit</option>
+    </select>
+    <div></div>
+    <button type="submit">Order</button>
+</form>
+<script>
+    // Display the drink parameter when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const drink = urlParams.get('drink');
+        if (drink) {
+            const drinkDisplay = document.createElement('h1');
+            drinkDisplay.textContent = `You're ordering: ${drink}`;
+            document.querySelector('form').prepend(drinkDisplay);
+            document.querySelector('title').textContent = `Order ${drink}`;
+        }
+    });
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Get the drink from the URL query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const drink = urlParams.get('drink');
+        // Get the name and logo from the form
+        const name = document.getElementById('name').value;
+        const logo = document.getElementById('logo').value;
+
+        const port = await fetch('config.json').then(res => res.json()).then(json => json['server_port']);
+        const res = await fetch(`/ports/${port}/submit-job`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drink, name, logo })
+        });
+        if (res.status === 200) {
+            alert("Order submitted!");
+        } else if (res.status === 202) {
+            const json = await res.json();
+            alert("Order submitted! You're number " + json['Queued']['position'] + " in the queue.");
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+[package]
+name = "job-dispatcher-service"
+version = "1.0.0"
+edition = "2024"
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[dependencies]
+clap = { version = "4.5.31", features = ["derive"] }
+tokio = { version = "1.44.0", features = ["full"] }
+axum = { version = "0.8.1" }
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = { version = "1.0.140" }
+tower-http = { version = "0.6.2", features = ["trace", "fs"] }
+reqwest = { version = "0.12.15", features = ["json"] }
+tracing = { version = "0.1.41" }
+tracing-subscriber = { version = "0.3.19" }
+derive_more = { version = "2.0.1", features = ["from", "display", "from_str"] }
+chrono = { version = "0.4.40", features = ["serde"] }
+uuid = { version = "1.16.0", features = ["serde", "v4"] }
+
